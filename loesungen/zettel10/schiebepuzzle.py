@@ -31,96 +31,119 @@ def shuffle_pos(p, n):
     while k < n:
         luecke = p.index(' ')
 
-        # 0: left
-        # 1: up
-        # 2: right
-        # 3: down
-        move = random.randint(0,3)
+        moves = ["right", "up", "down", "left"]
+        this = moves[random.randint(0,3)]
 
 
         # "right" in rechter Spalte nicht erlaubt
-        if move == 0 and prev != 2 and (luecke % 4) != 3:
-            p[luecke], p[luecke+1] = p[luecke+1], p[luecke]
-            prev = 0
+        if this == "right" and prev != "left" and isNotRight(luecke):
+            p = move(p, luecke, "right")
+            prev = "right"
             k += 1
 
         # "up" in oberster Reihe nicht erlaubt
-        elif move == 1 and prev != 3 and luecke > 3:
-            p[luecke], p[luecke-4] = p[luecke-4], p[luecke]
-            prev = 1
+        elif this == "up" and prev != "down" and isNotTop(luecke):
+            p = move(p, luecke, "up")
+            prev = "up"
             k += 1
 
         # "left" in linker Spalte nicht erlaubt
-        elif move == 2 and prev != 0 and (luecke % 4) != 0:
-            p[luecke], p[luecke-1] = p[luecke-1], p[luecke]
-            prev = 2
+        elif this == "left" and prev != "right" and isNotLeft(luecke):
+            p = move(p, luecke, "left")
+            prev = "left"
             k += 1
 
         # "down" in unterste Reihe nicht erlaubt
-        elif prev != 1 and luecke < 12:
-            p[luecke], p[luecke+4] = p[luecke+4], p[luecke]
-            prev = 3
+        elif prev != "up" and isNotBottom(luecke):
+            p = move(p, luecke, "down")
+            prev = "down"
             k += 1
+
+    return p
+
+# Hilfsfunktionen, um solve_bfs lesbarer zu machen
+
+def isNotTop(luecke):
+    return luecke>3
+
+def isNotRight(luecke):
+    return luecke%4 != 3
+
+def isNotLeft(luecke):
+    return luecke%4 != 0
+
+def isNotBottom(luecke):
+    return luecke<12
+
+def move(p, luecke, move):
+    if move == "right":
+        pp = list(p)
+        pp[luecke], pp[luecke+1] = pp[luecke+1], pp[luecke]
+        return pp
+    if move == "down":
+        pp = list(p) # Explizite Kopie von p
+        pp[luecke], pp[luecke+4] = pp[luecke+4], pp[luecke]
+        return pp
+    if move == "up":
+        pp = list(p) # Explizite Kopie von p
+        pp[luecke], pp[luecke-4] = pp[luecke-4], pp[luecke]
+        return pp
+    if move == "left":
+        pp = list(p) # Explizite Kopie von p
+        pp[luecke], pp[luecke-1] = pp[luecke-1], pp[luecke]
+        return pp
 
 def solve_bfs(p, maxlevel):
     parents = {str(p): ''}
     target = str([x if x != 16 else " " for x in range(1, 17)])
+    level = 0
+    pp = list(p)
 
     q = deque()
     # Wir speichern zusätzlich zum Knoten auch das "Level" des Knoten, um
     # einfach die Abbruch-Bedingung prüfen zu können: Knoten in zu tiefem Level
     # werden nicht angehängt.
-    q.append((p, 0))
+    q.append((p, level))
+
     while len(q) > 0:
-        p, level = q.popleft()
-        luecke = p.index(' ')
-        if (luecke % 4) != 3:
-            # left
-            pp = list(p) # Explizite Kopie von p
-            pp[luecke], pp[luecke+1] = pp[luecke+1], pp[luecke]
-            pps = str(pp)
-            if parents.get(pps) is None:
-                parents[pps] = p
-                if pp == target:
-                    break
-                if level < maxlevel:
-                    q.append((pp, level+1))
-        if luecke > 3:
-            # down
-            pp = list(p) # Explizite Kopie von p
-            pp[luecke], pp[luecke-4] = pp[luecke-4], pp[luecke]
-            pps = str(pp)
-            if parents.get(pps) is None:
-                parents[pps] = p
-                if pp == target:
-                    break
-                if level < maxlevel:
-                    q.append((pp, level+1))
-        if (luecke % 4) != 0:
-            # right
-            pp = list(p) # Explizite Kopie von p
-            pp[luecke], pp[luecke-1] = pp[luecke-1], pp[luecke]
-            pps = str(pp)
-            if parents.get(pps) is None:
-                parents[pps] = p
-                if pp == target:
-                    break
-                if level < maxlevel:
-                    q.append((pp, level+1))
-        if luecke < 12:
-            # up
-            pp = list(p) # Explizite Kopie von p
-            pp[luecke], pp[luecke+4] = pp[luecke+4], pp[luecke]
-            pps = str(pp)
-            if parents.get(pps) is None:
-                parents[pps] = p
-                if pp == target:
-                    break
-                if level < maxlevel:
-                    q.append((pp, level+1))
+        if pp == target:
+            break;
+
         if level == maxlevel:
             pp = None
             break
+
+        p, level = q.popleft()
+        luecke = p.index(' ')
+
+        if isNotRight(luecke):
+            pp = move(p, luecke, "right")
+            pps = str(pp)
+            if parents.get(pps) is None:
+                parents[pps] = p
+                q.append((pp, level+1))
+
+        if isNotTop(luecke):
+            pp = move(p, luecke, "up")
+            pps = str(pp)
+            if parents.get(pps) is None:
+                parents[pps] = p
+                q.append((pp, level+1))
+
+        if isNotLeft(luecke):
+            pp = move(p, luecke, "left")
+            pps = str(pp)
+            if parents.get(pps) is None:
+                parents[pps] = p
+                q.append((pp, level+1))
+
+
+        if isNotBottom(luecke):
+            pp = move(p, luecke, "down")
+            pps = str(pp)
+            if parents.get(pps) is None:
+                parents[pps] = p
+                q.append((pp, level+1))
 
     res = []
     pp = target
@@ -156,6 +179,5 @@ if __name__ == "__main__":
     for _ in range(5):
         n = random.randint(1,12)
         orig = list(A)
-        shuffle_pos(orig, n)
+        orig = shuffle_pos(orig, n)
         solve_bfs(orig, n+1)
-

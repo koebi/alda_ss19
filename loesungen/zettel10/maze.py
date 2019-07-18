@@ -23,7 +23,7 @@ def way_out(graph, startnode, targetnode):
     # Zusatz-Infos für Lösung
     preorder = []
     dead_ends = 0
-    
+
     def visit(node, targetnode):
         # Notwendig um auf die Variable außerhalb des scopes zuzugreifen.
         nonlocal dead_ends
@@ -34,24 +34,23 @@ def way_out(graph, startnode, targetnode):
             print(f"Target reached: {dead_ends} Sackgassen")
             return True
 
-        if not visited[node]:
-            visited[node] = True
-            preorder.append(node)
-            for neighbor in graph[node]:
-                # Hier muss überprüft werden, ob wir evtl. Nachbarn schon
-                # besucht haben. Ansonsten wird beispielsweise Knoten 15 von
-                # Knoten 13 aus direkt wieder besucht, da der "if not
-                # visited"-Check erst im visit()-call passiert.
-                if visited[neighbor]:
-                    continue
-                if visit(neighbor, targetnode):
-                    return True
-                else:
-                    print(f"Aktuell in {node} (backtrack)")
+        visited[node] = True
+        preorder.append(node)
+        for neighbor in graph[node]:
+            # Hier muss überprüft werden, ob wir evtl. Nachbarn schon
+            # besucht haben. Ansonsten wird beispielsweise Knoten 15 von
+            # Knoten 13 aus direkt wieder besucht, da der "if not
+            # visited"-Check erst im visit()-call passiert.
+            if visited[neighbor]: # Dieser Check ersetzt das "if not visited[node] aus der Tiefensuche"
+                continue
+            if visit(neighbor, targetnode):
+                return True
+            else:
+                print(f"Aktuell in {node} (backtrack)")
         print("Sackgasse")
         dead_ends += 1
         return False
-    
+
     visit(startnode, targetnode)
     return preorder
 
