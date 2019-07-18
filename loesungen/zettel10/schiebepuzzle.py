@@ -36,62 +36,55 @@ def shuffle_pos(p, n):
 
 
         # "right" in rechter Spalte nicht erlaubt
-        if this == "right" and prev != "left" and isNotRight(luecke):
-            p = move(p, luecke, "right")
+        if this == "right" and prev != "left" and not isRight(luecke):
+            move(p, luecke, "right")
             prev = "right"
             k += 1
 
         # "up" in oberster Reihe nicht erlaubt
-        elif this == "up" and prev != "down" and isNotTop(luecke):
-            p = move(p, luecke, "up")
+        elif this == "up" and prev != "down" and not isTop(luecke):
+            move(p, luecke, "up")
             prev = "up"
             k += 1
 
         # "left" in linker Spalte nicht erlaubt
-        elif this == "left" and prev != "right" and isNotLeft(luecke):
-            p = move(p, luecke, "left")
+        elif this == "left" and prev != "right" and not isLeft(luecke):
+            move(p, luecke, "left")
             prev = "left"
             k += 1
 
         # "down" in unterste Reihe nicht erlaubt
-        elif prev != "up" and isNotBottom(luecke):
-            p = move(p, luecke, "down")
+        elif prev != "up" and not isBottom(luecke):
+            move(p, luecke, "down")
             prev = "down"
             k += 1
 
-    return p
-
 # Hilfsfunktionen, um solve_bfs lesbarer zu machen
 
-def isNotTop(luecke):
-    return luecke>3
+def isTop(luecke):
+    return luecke <= 3
 
-def isNotRight(luecke):
-    return luecke%4 != 3
+def isRight(luecke):
+    return luecke%4 == 3
 
-def isNotLeft(luecke):
-    return luecke%4 != 0
+def isLeft(luecke):
+    return luecke%4 == 0
 
-def isNotBottom(luecke):
-    return luecke<12
+def isBottom(luecke):
+    return luecke >= 12
 
 def move(p, luecke, move):
     if move == "right":
-        pp = list(p)
-        pp[luecke], pp[luecke+1] = pp[luecke+1], pp[luecke]
-        return pp
+        p[luecke], p[luecke+1] = p[luecke+1], p[luecke]
+
     if move == "down":
-        pp = list(p) # Explizite Kopie von p
-        pp[luecke], pp[luecke+4] = pp[luecke+4], pp[luecke]
-        return pp
+        p[luecke], p[luecke+4] = p[luecke+4], p[luecke]
+
     if move == "up":
-        pp = list(p) # Explizite Kopie von p
-        pp[luecke], pp[luecke-4] = pp[luecke-4], pp[luecke]
-        return pp
+        p[luecke], p[luecke-4] = p[luecke-4], p[luecke]
+
     if move == "left":
-        pp = list(p) # Explizite Kopie von p
-        pp[luecke], pp[luecke-1] = pp[luecke-1], pp[luecke]
-        return pp
+        p[luecke], p[luecke-1] = p[luecke-1], p[luecke]
 
 def solve_bfs(p, maxlevel):
     parents = {str(p): ''}
@@ -116,30 +109,34 @@ def solve_bfs(p, maxlevel):
         p, level = q.popleft()
         luecke = p.index(' ')
 
-        if isNotRight(luecke):
-            pp = move(p, luecke, "right")
+        if not isRight(luecke):
+            pp = list(p)
+            move(pp, luecke, "right")
             pps = str(pp)
             if parents.get(pps) is None:
                 parents[pps] = p
                 q.append((pp, level+1))
 
-        if isNotTop(luecke):
-            pp = move(p, luecke, "up")
+        if not isTop(luecke):
+            pp = list(p)
+            move(pp, luecke, "up")
             pps = str(pp)
             if parents.get(pps) is None:
                 parents[pps] = p
                 q.append((pp, level+1))
 
-        if isNotLeft(luecke):
-            pp = move(p, luecke, "left")
+        if not isLeft(luecke):
+            pp = list(p)
+            move(pp, luecke, "left")
             pps = str(pp)
             if parents.get(pps) is None:
                 parents[pps] = p
                 q.append((pp, level+1))
 
 
-        if isNotBottom(luecke):
-            pp = move(p, luecke, "down")
+        if not isBottom(luecke):
+            pp = list(p)
+            move(pp, luecke, "down")
             pps = str(pp)
             if parents.get(pps) is None:
                 parents[pps] = p
@@ -179,5 +176,5 @@ if __name__ == "__main__":
     for _ in range(5):
         n = random.randint(1,12)
         orig = list(A)
-        orig = shuffle_pos(orig, n)
+        shuffle_pos(orig, n)
         solve_bfs(orig, n+1)
